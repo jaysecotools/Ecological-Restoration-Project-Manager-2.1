@@ -1,0 +1,3555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ecological Restoration Project Manager</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+  <style>
+    /* Your existing CSS remains the same */
+    :root {
+      --primary: #2e7d32;
+      --primary-light: #60ad5e;
+      --primary-dark: #005005;
+      --secondary: #ff8f00;
+      --background: #f5f5f5;
+      --paper: #ffffff;
+      --text-primary: rgba(0, 0, 0, 0.87);
+      --text-secondary: rgba(0, 0, 0, 0.6);
+      --error: #d32f2f;
+      --warning: #ffa000;
+      --info: #0288d1;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Roboto', sans-serif;
+    }
+    
+    body {
+      background-color: var(--background);
+      color: var(--text-primary);
+      line-height: 1.6;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    header {
+      background-color: var(--primary);
+      color: white;
+      padding: 20px 0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .logo i {
+      font-size: 2rem;
+    }
+    
+    .logo h1 {
+      font-weight: 500;
+    }
+    
+    nav ul {
+      display: flex;
+      list-style: none;
+      gap: 20px;
+    }
+    
+    nav a {
+      color: white;
+      text-decoration: none;
+      font-weight: 500;
+      padding: 8px 12px;
+      border-radius: 4px;
+      transition: background-color 0.3s;
+    }
+    
+    nav a:hover, nav a.active {
+      background-color: var(--primary-light);
+    }
+    
+    .card {
+      background-color: var(--paper);
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    
+    .card h2 {
+      color: var(--primary);
+      margin-bottom: 15px;
+      font-weight: 500;
+    }
+    
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    
+    .btn {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background-color 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .btn:hover {
+      background-color: var(--primary-dark);
+    }
+    
+    .btn-secondary {
+      background-color: var(--secondary);
+    }
+    
+    .btn-secondary:hover {
+      opacity: 0.9;
+    }
+    
+    .btn-outline {
+      background-color: transparent;
+      border: 1px solid var(--primary);
+      color: var(--primary);
+    }
+    
+    .btn-outline:hover {
+      background-color: rgba(46, 125, 50, 0.1);
+    }
+    
+    .btn-danger {
+      background-color: var(--error);
+    }
+    
+    .btn-danger:hover {
+      background-color: #b71c1c;
+    }
+    
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .dropdown {
+      position: relative;
+      display: inline-block;
+    }
+
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      background-color: white;
+      min-width: 160px;
+      box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+      z-index: 1;
+      border-radius: 4px;
+      right: 0;
+    }
+
+    .dropdown-content a {
+      color: var(--text-primary);
+      padding: 12px 16px;
+      text-decoration: none;
+      display: block;
+    }
+
+    .dropdown-content a:hover {
+      background-color: #f1f1f1;
+    }
+
+    #projects-map, #project-location-map, #monitoring-location-map, #project-detail-map {
+      height: 300px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    
+    .form-group label {
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+    
+    .form-control {
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+    
+    .form-control:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.2);
+    }
+    
+    .map-container {
+      height: 400px;
+      width: 100%;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 15px 0;
+    }
+    
+    .project-card {
+      border-left: 4px solid var(--primary);
+      transition: transform 0.3s;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    
+    .project-card:hover {
+      transform: translateY(-5px);
+    }
+    
+    .project-card h3 {
+      margin-bottom: 10px;
+    }
+    
+    .project-meta {
+      display: flex;
+      gap: 15px;
+      margin: 10px 0;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+    
+    .project-meta span {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .project-meta i {
+      font-size: 0.9rem;
+    }
+    
+    .status-badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      background-color: #e0e0e0;
+    }
+    
+    .status-badge.active {
+      background-color: #c8e6c9;
+      color: #256029;
+    }
+    
+    .status-badge.completed {
+      background-color: #b3e5fc;
+      color: #006064;
+    }
+    
+    .status-badge.planned {
+      background-color: #ffecb3;
+      color: #7a4f01;
+    }
+    
+    .tab-container {
+      display: flex;
+      border-bottom: 1px solid #ddd;
+      margin-bottom: 20px;
+    }
+    
+    .tab {
+      padding: 10px 20px;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+    }
+    
+    .tab.active {
+      border-bottom-color: var(--primary);
+      font-weight: 500;
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+    
+    .photo-upload-container {
+      border: 2px dashed #ccc;
+      padding: 20px;
+      text-align: center;
+      border-radius: 8px;
+      margin: 15px 0;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .photo-upload-container:hover {
+      border-color: var(--primary);
+      background-color: rgba(46, 125, 50, 0.05);
+    }
+    
+    .photo-preview {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 15px;
+    }
+    
+    .photo-thumbnail {
+      width: 100px;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+      position: relative;
+    }
+    
+    .photo-thumbnail .delete-photo {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      background-color: rgba(0,0,0,0.5);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    
+    .photo-thumbnail:hover .delete-photo {
+      opacity: 1;
+    }
+    
+    .timeline {
+      position: relative;
+      margin: 20px 0;
+    }
+    
+    .timeline::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 15px;
+      width: 2px;
+      background: #ddd;
+    }
+    
+    .timeline-item {
+      position: relative;
+      padding-left: 40px;
+      margin-bottom: 20px;
+    }
+    
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: 8px;
+      top: 5px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--primary);
+    }
+    
+    .timeline-date {
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 5px;
+    }
+    
+    .timeline-content {
+      background: white;
+      padding: 10px 15px;
+      border-radius: 4px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+
+    .tooltip {
+      position: absolute;
+      background-color: #333;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      z-index: 100;
+      white-space: nowrap;
+    }
+
+    .tooltip::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      margin-left: -5px;
+      border-width: 5px;
+      border-style: solid;
+      border-color: #333 transparent transparent transparent;
+    }
+
+.monitoring-icon {
+  font-size: 0.9rem;
+  margin-right: 5px;
+}
+
+    .chart-container {
+      position: relative;
+      height: 300px;
+      margin-bottom: 20px;
+    }
+    
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .modal-content {
+      background-color: white;
+      width: 90%;
+      max-width: 800px;
+      max-height: 90vh;
+      border-radius: 8px;
+      overflow-y: auto;
+      padding: 20px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+    
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #eee;
+    }
+    
+    .close-modal {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--text-secondary);
+    }
+    
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 20px;
+      padding-top: 15px;
+      border-top: 1px solid #eee;
+    }
+    
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1100;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .toast {
+      padding: 12px 20px;
+      border-radius: 4px;
+      color: white;
+      box-shadow: 0 3px 5px rgba(0,0,0,0.2);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: slideIn 0.3s ease-out;
+    }
+    
+    .toast.success {
+      background-color: var(--primary);
+    }
+    
+    .toast.error {
+      background-color: var(--error);
+    }
+    
+    .toast.warning {
+      background-color: var(--warning);
+    }
+    
+    .toast.info {
+      background-color: var(--info);
+    }
+    
+    @keyframes slideIn {
+      from { transform: translateX(100%); }
+      to { transform: translateX(0); }
+    }
+    
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 15px 0;
+    }
+    
+    .data-table th, .data-table td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+    
+    .data-table th {
+      background-color: #f5f5f5;
+      font-weight: 500;
+    }
+    
+    .data-table tr:hover {
+      background-color: rgba(0,0,0,0.02);
+    }
+    
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s ease-in-out infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-secondary);
+    }
+    
+    .empty-state i {
+      font-size: 3rem;
+      margin-bottom: 15px;
+      color: #ddd;
+    }
+
+    .project-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
+    .project-tag {
+      background-color: var(--primary-light);
+      color: white;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+    }
+    
+    @media (max-width: 768px) {
+      .header-content {
+        flex-direction: column;
+        gap: 15px;
+      }
+      
+      nav ul {
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      
+      .grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .modal-content {
+        width: 95%;
+        padding: 15px;
+      }
+      
+      .data-table {
+        display: block;
+        overflow-x: auto;
+      }
+
+      .project-meta {
+        flex-direction: column;
+        gap: 5px;
+      }
+    }
+
+    .search-filter {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .search-box {
+      flex: 1;
+      min-width: 250px;
+    }
+
+    .filter-select {
+      min-width: 150px;
+    }
+
+    .error {
+      border-color: var(--error) !important;
+    }
+
+    .error-message {
+      color: var(--error);
+      font-size: 0.8rem;
+      margin-top: 5px;
+    }
+
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+      display: none;
+    }
+
+    .loading-content {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .observation-card {
+      border-left: 4px solid var(--info);
+      padding: 15px;
+      margin-bottom: 15px;
+      background: white;
+      border-radius: 4px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .observation-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .observation-point {
+      font-weight: 500;
+      color: var(--primary);
+    }
+
+    .observation-date {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    .section {
+      display: none;
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    .custom-marker {
+      background: transparent !important;
+      border: none !important;
+    }
+    
+    /* New styles for project detail map */
+    .project-detail-map-container {
+      margin: 20px 0;
+    }
+    
+    .project-map-controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="loading-overlay" id="loading-overlay">
+    <div class="loading-content">
+      <div class="spinner" style="width: 40px; height: 40px; margin: 0 auto 15px;"></div>
+      <p>Loading...</p>
+    </div>
+  </div>
+
+  <header>
+    <div class="container header-content">
+      <div class="logo">
+        <i class="fas fa-seedling"></i>
+        <h1>Ecological Restoration Manager</h1>
+      </div>
+<nav>
+  <ul>
+    <li><a href="#" class="nav-link active" data-section="dashboard"><i class="fas fa-home"></i> Dashboard</a></li>
+    <li><a href="#" class="nav-link" data-section="projects"><i class="fas fa-folder"></i> Projects</a></li>
+    <li><a href="#" class="nav-link" data-section="monitoring"><i class="fas fa-binoculars"></i> Monitoring</a></li>
+    <li><a href="#" class="nav-link" data-section="reports"><i class="fas fa-chart-bar"></i> Reports</a></li>
+    <li><a href="#" class="nav-link" data-section="team"><i class="fas fa-users"></i> Team</a></li>
+    <li><a href="#" class="nav-link" data-section="data"><i class="fas fa-database"></i> Data</a></li>
+  </ul>
+</nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section id="dashboard" class="section active">
+      <div class="card">
+        <h2>Restoration Dashboard</h2>
+        <div class="grid">
+          <div class="card">
+            <h3>Active Projects</h3>
+            <p id="active-projects-count" style="font-size: 2.5rem; font-weight: 300;">0</p>
+            <p style="color: var(--text-secondary); font-size: 0.9rem;">Total: <span id="total-projects-count">0</span></p>
+          </div>
+          <div class="card">
+            <h3>Monitoring Points</h3>
+            <p id="monitoring-points-count" style="font-size: 2.5rem; font-weight: 300;">0</p>
+            <p style="color: var(--text-secondary); font-size: 0.9rem;">Observations: <span id="total-observations-count">0</span></p>
+          </div>
+          <div class="card">
+            <h3>Pending Actions</h3>
+            <p id="pending-actions-count" style="font-size: 2.5rem; font-weight: 300;">0</p>
+            <p style="color: var(--text-secondary); font-size: 0.9rem;">Overdue: <span id="overdue-actions-count">0</span></p>
+          </div>
+          <div class="card">
+            <h3>Team Members</h3>
+            <p id="team-members-count" style="font-size: 2.5rem; font-weight: 300;">0</p>
+            <p style="color: var(--text-secondary); font-size: 0.9rem;">Active: <span id="active-team-count">0</span></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Project Locations</h2>
+        <div id="projects-map" class="map-container"></div>
+      </div>
+
+      <div class="card">
+        <h2>Recent Activities</h2>
+        <div id="recent-activities">
+          <div class="empty-state">
+            <i class="fas fa-inbox"></i>
+            <p>No recent activities</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="projects" class="section">
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+          <h2>Restoration Projects</h2>
+          <button class="btn" onclick="showProjectForm()"><i class="fas fa-plus"></i> New Project</button>
+        </div>
+        
+        <div class="search-filter">
+          <div class="search-box">
+            <input type="text" id="project-search" class="form-control" placeholder="Search projects..." onkeyup="filterProjects()">
+          </div>
+          <div class="filter-select">
+            <select id="project-type-filter" class="form-control" onchange="filterProjects()">
+              <option value="">All Types</option>
+              <option value="riparian">Riparian</option>
+              <option value="coastal">Coastal</option>
+              <option value="wetland">Wetland</option>
+              <option value="forest">Forest</option>
+              <option value="grassland">Grassland</option>
+              <option value="urban">Urban</option>
+              <option value="mine">Mine Site</option>
+              <option value="agricultural">Agricultural</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="tab-container">
+          <div class="tab active" onclick="setProjectFilter('all')">All Projects</div>
+          <div class="tab" onclick="setProjectFilter('active')">Active</div>
+          <div class="tab" onclick="setProjectFilter('planned')">Planned</div>
+          <div class="tab" onclick="setProjectFilter('completed')">Completed</div>
+        </div>
+        
+        <div id="projects-list" class="grid" style="margin-top: 20px;"></div>
+      </div>
+
+      <div id="project-form-container" class="card" style="display: none;">
+        <h2 id="project-form-title">Create New Project</h2>
+        <form id="project-form">
+          <input type="hidden" id="project-id">
+          
+          <div class="form-group">
+            <label for="project-name">Project Name *</label>
+            <input type="text" id="project-name" class="form-control" required>
+            <div class="error-message" id="project-name-error"></div>
+          </div>
+          
+          <div class="form-group">
+            <label for="project-type">Restoration Type *</label>
+            <select id="project-type" class="form-control" required>
+              <option value="">Select a type</option>
+              <option value="riparian">Riparian</option>
+              <option value="coastal">Coastal</option>
+              <option value="wetland">Wetland</option>
+              <option value="forest">Forest</option>
+              <option value="grassland">Grassland</option>
+              <option value="urban">Urban</option>
+              <option value="mine">Mine Site</option>
+              <option value="agricultural">Agricultural</option>
+            </select>
+            <div class="error-message" id="project-type-error"></div>
+          </div>
+          
+          <div class="form-group">
+            <label for="project-status">Status *</label>
+            <select id="project-status" class="form-control" required>
+              <option value="planned">Planned</option>
+              <option value="active" selected>Active</option>
+              <option value="completed">Completed</option>
+              <option value="on-hold">On Hold</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="project-location">Location Name *</label>
+            <input type="text" id="project-location" class="form-control" required>
+            <div class="error-message" id="project-location-error"></div>
+          </div>
+          
+          <div class="form-group">
+            <label>Select Location on Map *</label>
+            <div id="project-location-map" class="map-container"></div>
+            <input type="hidden" id="project-lat" required>
+            <input type="hidden" id="project-lng" required>
+            <div class="error-message" id="project-coords-error"></div>
+          </div>
+          
+          <div class="form-group">
+            <label for="project-start-date">Start Date *</label>
+            <input type="date" id="project-start-date" class="form-control" required>
+            <div class="error-message" id="project-start-date-error"></div>
+          </div>
+          
+          <div class="form-group">
+            <label for="project-end-date">End Date</label>
+            <input type="date" id="project-end-date" class="form-control">
+          </div>
+          
+          <div class="form-group">
+            <label for="project-area">Area (hectares)</label>
+            <input type="number" id="project-area" class="form-control" min="0" step="0.1">
+          </div>
+          
+          <div class="form-group">
+            <label for="project-budget">Budget ($)</label>
+            <input type="number" id="project-budget" class="form-control" min="0">
+          </div>
+          
+          <div class="form-group">
+            <label for="project-description">Description</label>
+            <textarea id="project-description" class="form-control" rows="3"></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label>Project Photos</label>
+            <div id="photo-upload" class="photo-upload-container" onclick="document.getElementById('project-photos').click()">
+              <i class="fas fa-camera fa-2x" style="color: var(--text-secondary); margin-bottom: 10px;"></i>
+              <p>Click to upload photos or drag and drop</p>
+              <input type="file" id="project-photos" multiple accept="image/*" style="display: none;" onchange="handlePhotoUpload(this.files, 'project')">
+            </div>
+            <div id="photo-preview" class="photo-preview"></div>
+          </div>
+          
+          <div style="display: flex; gap: 10px; justify-content: flex-end;">
+            <button type="button" class="btn btn-secondary" onclick="hideProjectForm()">Cancel</button>
+            <button type="submit" class="btn" id="project-form-submit">
+              <span id="submit-text">Save Project</span>
+              <span id="submit-spinner" class="spinner" style="display: none;"></span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- Rest of your HTML remains the same -->
+    <section id="monitoring" class="section">
+      <div class="card">
+        <h2>Monitoring Points</h2>
+        <div class="tab-container">
+<!-- Change this in your HTML -->
+<div class="tab active" onclick="showMonitoringTab('all')">All Points</div>
+<div class="tab" onclick="showMonitoringTab('new')">Add New</div>
+<div class="tab" onclick="showMonitoringTab('observations')">Observations</div>
+        </div>
+        
+        <div id="monitoring-all" class="tab-content active">
+          <div class="search-filter">
+            <div class="search-box">
+              <input type="text" id="monitoring-search" class="form-control" placeholder="Search monitoring points..." onkeyup="filterMonitoringPoints()">
+            </div>
+            <div class="filter-select">
+              <select id="monitoring-project-filter" class="form-control" onchange="filterMonitoringPoints()">
+                <option value="">All Projects</option>
+              </select>
+            </div>
+          </div>
+          <div id="monitoring-points-list" class="grid"></div>
+        </div>
+        
+        <div id="monitoring-new" class="tab-content">
+          <form id="monitoring-form">
+            <input type="hidden" id="monitoring-id">
+            
+            <div class="form-group">
+              <label for="monitoring-project">Project *</label>
+              <select id="monitoring-project" class="form-control" required>
+                <option value="">Select a project</option>
+              </select>
+              <div class="error-message" id="monitoring-project-error"></div>
+            </div>
+            
+            <div class="form-group">
+              <label for="monitoring-name">Point Name *</label>
+              <input type="text" id="monitoring-name" class="form-control" required>
+              <div class="error-message" id="monitoring-name-error"></div>
+            </div>
+            
+            <div class="form-group">
+              <label for="monitoring-type">Point Type *</label>
+              <select id="monitoring-type" class="form-control" required>
+                <option value="">Select a type</option>
+                <option value="vegetation">Vegetation</option>
+                <option value="water-quality">Water Quality</option>
+                <option value="wildlife">Wildlife</option>
+                <option value="soil">Soil</option>
+                <option value="erosion">Erosion</option>
+              </select>
+              <div class="error-message" id="monitoring-type-error"></div>
+            </div>
+            
+            <div class="form-group">
+              <label>Select Location on Map *</label>
+              <div id="monitoring-location-map" class="map-container"></div>
+              <input type="hidden" id="monitoring-lat" required>
+              <input type="hidden" id="monitoring-lng" required>
+              <div class="error-message" id="monitoring-coords-error"></div>
+            </div>
+            
+            <div class="form-group">
+              <label>Monitoring Photos</label>
+              <div id="monitoring-photo-upload" class="photo-upload-container" onclick="document.getElementById('monitoring-photos').click()">
+                <i class="fas fa-camera fa-2x" style="color: var(--text-secondary); margin-bottom: 10px;"></i>
+                <p>Click to upload photos or drag and drop</p>
+                <input type="file" id="monitoring-photos" multiple accept="image/*" style="display: none;" onchange="handlePhotoUpload(this.files, 'monitoring')">
+              </div>
+              <div id="monitoring-photo-preview" class="photo-preview"></div>
+            </div>
+            
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+              <button type="button" class="btn btn-secondary" onclick="showMonitoringTab('all')">Cancel</button>
+              <button type="submit" class="btn" id="monitoring-form-submit">
+                <span id="monitoring-submit-text">Save Monitoring Point</span>
+                <span id="monitoring-submit-spinner" class="spinner" style="display: none;"></span>
+              </button>
+            </div>
+          </form>
+        </div>
+        
+        <div id="monitoring-observations" class="tab-content">
+          <div class="search-filter">
+            <div class="filter-select">
+              <label for="observation-project">Filter by Project</label>
+              <select id="observation-project" class="form-control" onchange="filterObservations()">
+                <option value="">All Projects</option>
+              </select>
+            </div>
+            <div class="filter-select">
+              <label for="observation-date-filter">Filter by Date</label>
+              <select id="observation-date-filter" class="form-control" onchange="filterObservations()">
+                <option value="all">All Dates</option>
+                <option value="today">Today</option>
+                <option value="week">This Week</option>
+                <option value="month">This Month</option>
+              </select>
+            </div>
+          </div>
+          
+          <div id="observations-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="reports" class="section">
+      <div class="card">
+        <h2>Project Reports</h2>
+        <div class="grid">
+          <div class="card">
+            <h3>Project Status</h3>
+            <div class="chart-container">
+              <canvas id="project-status-chart"></canvas>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Restoration Types</h3>
+            <div class="chart-container">
+              <canvas id="restoration-types-chart"></canvas>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Project Timeline</h3>
+            <div class="chart-container">
+              <canvas id="project-timeline-chart"></canvas>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Monitoring Frequency</h3>
+            <div class="chart-container">
+              <canvas id="monitoring-frequency-chart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card">
+        <h2>Generate Report</h2>
+        <form id="report-form">
+          <div class="form-group">
+            <label for="report-project">Select Project</label>
+            <select id="report-project" class="form-control">
+              <option value="">All Projects</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="report-type">Report Type</label>
+            <select id="report-type" class="form-control" required>
+              <option value="summary">Project Summary</option>
+              <option value="progress">Progress Report</option>
+              <option value="monitoring">Monitoring Data</option>
+              <option value="full">Full Project Report</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="report-format">Output Format</label>
+            <select id="report-format" class="form-control" required>
+              <option value="pdf">PDF</option>
+              <option value="html">HTML</option>
+              <option value="csv">CSV (Data Only)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="report-date-range">Date Range</label>
+            <div style="display: flex; gap: 10px;">
+              <input type="date" id="report-start-date" class="form-control">
+              <span style="align-self: center;">to</span>
+              <input type="date" id="report-end-date" class="form-control">
+            </div>
+          </div>
+          
+          <div style="display: flex; justify-content: flex-end;">
+            <button type="submit" class="btn" id="report-form-submit">
+              <i class="fas fa-file-pdf"></i> Generate Report
+              <span id="report-submit-spinner" class="spinner" style="display: none; margin-left: 8px;"></span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+    
+    <section id="team" class="section">
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <h2>Team Members</h2>
+          <button class="btn" onclick="showTeamMemberForm()"><i class="fas fa-plus"></i> Add Member</button>
+        </div>
+        
+        <div class="search-filter">
+          <div class="search-box">
+            <input type="text" id="team-search" class="form-control" placeholder="Search team members..." onkeyup="filterTeamMembers()">
+          </div>
+          <div class="filter-select">
+            <select id="team-role-filter" class="form-control" onchange="filterTeamMembers()">
+              <option value="">All Roles</option>
+              <option value="project-manager">Project Manager</option>
+              <option value="ecologist">Ecologist</option>
+              <option value="field-technician">Field Technician</option>
+              <option value="volunteer">Volunteer</option>
+              <option value="researcher">Researcher</option>
+              <option value="administrator">Administrator</option>
+            </select>
+          </div>
+        </div>
+        
+        <div id="team-members-list" style="margin-top: 20px;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Role</th>
+                <th>Email</th>
+                <th>Status</th>
+                <th>Assigned Projects</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+      
+      <div id="team-member-form-container" class="card" style="display: none;">
+        <h2 id="team-member-form-title">Add Team Member</h2>
+        <form id="team-member-form">
+          <input type="hidden" id="team-member-id">
+          
+          <div class="form-group">
+            <label for="team-member-name">Full Name *</label>
+            <input type="text" id="team-member-name" class="form-control" required>
+            <div class="error-message" id="team-member-name-error"></div>
+          </div>
+          
+          <div class="form-group">
+            <label for="team-member-role">Role *</label>
+            <select id="team-member-role" class="form-control" required>
+              <option value="">Select a role</option>
+              <option value="project-manager">Project Manager</option>
+              <option value="ecologist">Ecologist</option>
+              <option value="field-technician">Field Technician</option>
+              <option value="volunteer">Volunteer</option>
+              <option value="researcher">Researcher</option>
+              <option value="administrator">Administrator</option>
+            </select>
+            <div class="error-message" id="team-member-role-error"></div>
+          </div>
+          
+          <div class="form-group">
+            <label for="team-member-email">Email *</label>
+            <input type="email" id="team-member-email" class="form-control" required>
+            <div class="error-message" id="team-member-email-error"></div>
+          </div>
+          
+          <div class="form-group">
+            <label for="team-member-phone">Phone</label>
+            <input type="tel" id="team-member-phone" class="form-control">
+          </div>
+          
+          <div class="form-group">
+            <label for="team-member-status">Status *</label>
+            <select id="team-member-status" class="form-control" required>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="team-member-projects">Assigned Projects</label>
+            <select id="team-member-projects" class="form-control" multiple style="height: 120px;"></select>
+            <small>Hold Ctrl/Cmd to select multiple projects</small>
+          </div>
+          
+          <div style="display: flex; gap: 10px; justify-content: flex-end;">
+            <button type="button" class="btn btn-secondary" onclick="hideTeamMemberForm()">Cancel</button>
+            <button type="submit" class="btn" id="team-member-form-submit">
+              <span id="team-submit-text">Save Member</span>
+              <span id="team-submit-spinner" class="spinner" style="display: none;"></span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+<section id="data" class="section">
+  <div class="card">
+    <h2>Data Management</h2>
+    <div class="grid">
+      <div class="card">
+        <h3>Export Data</h3>
+        <p>Export all project data, monitoring points, and observations for backup or analysis.</p>
+        <button class="btn" onclick="exportData()" style="margin-top: 15px;">
+          <i class="fas fa-file-export"></i> Export Data
+        </button>
+      </div>
+      
+      <div class="card">
+        <h3>Import Data</h3>
+        <p>Import previously exported data to restore or merge with existing data.</p>
+        <button class="btn" onclick="document.getElementById('import-file').click()" style="margin-top: 15px;">
+          <i class="fas fa-file-import"></i> Import Data
+        </button>
+      </div>
+      
+      <div class="card">
+        <h3>Backup Data</h3>
+        <p>Create a backup of your current data in the browser's local storage.</p>
+        <button class="btn" onclick="backupData()" style="margin-top: 15px;">
+          <i class="fas fa-save"></i> Backup Now
+        </button>
+      </div>
+      
+      <div class="card">
+        <h3>Data Statistics</h3>
+        <div style="margin-top: 15px;">
+          <p><strong>Projects:</strong> <span id="data-projects-count">0</span></p>
+          <p><strong>Monitoring Points:</strong> <span id="data-monitoring-count">0</span></p>
+          <p><strong>Observations:</strong> <span id="data-observations-count">0</span></p>
+          <p><strong>Team Members:</strong> <span id="data-team-count">0</span></p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="card">
+    <h2>Storage Information</h2>
+    <div id="storage-info">
+      <p>Checking storage usage...</p>
+    </div>
+  </div>
+</section>
+
+  </main>
+
+  <div id="project-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modal-project-title">Project Details</h2>
+        <button class="close-modal" onclick="closeModal()">&times;</button>
+      </div>
+      <div id="modal-project-content"></div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal()">Close</button>
+        <button class="btn" onclick="editCurrentProject()">Edit Project</button>
+      </div>
+    </div>
+  </div>
+  
+  <div id="observation-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modal-observation-title">Add Observation</h2>
+        <button class="close-modal" onclick="closeObservationModal()">&times;</button>
+      </div>
+      <div id="modal-observation-content">
+        <form id="observation-form">
+          <input type="hidden" id="observation-id">
+          <input type="hidden" id="observation-point-id">
+          
+          <div class="form-group">
+            <label for="observation-date">Date *</label>
+            <input type="date" id="observation-date" class="form-control" required>
+            <div class="error-message" id="observation-date-error"></div>
+          </div>
+          
+          <div class="form-group">
+            <label for="observation-notes">Notes *</label>
+            <textarea id="observation-notes" class="form-control" rows="3" required></textarea>
+            <div class="error-message" id="observation-notes-error"></div>
+          </div>
+          
+          <div class="form-group">
+            <label for="observation-weather">Weather Conditions</label>
+            <input type="text" id="observation-weather" class="form-control">
+          </div>
+          
+          <div class="form-group">
+            <label for="observation-temp">Temperature (°C)</label>
+            <input type="number" id="observation-temp" class="form-control" step="0.1">
+          </div>
+          
+          <div class="form-group">
+            <label>Photos</label>
+            <div id="observation-photo-upload" class="photo-upload-container" onclick="document.getElementById('observation-photos').click()">
+              <i class="fas fa-camera fa-2x" style="color: var(--text-secondary); margin-bottom: 10px;"></i>
+              <p>Click to upload photos or drag and drop</p>
+              <input type="file" id="observation-photos" multiple accept="image/*" style="display: none;" onchange="handlePhotoUpload(this.files, 'observation')">
+            </div>
+            <div id="observation-photo-preview" class="photo-preview"></div>
+          </div>
+          
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeObservationModal()">Cancel</button>
+            <button type="submit" class="btn">Save Observation</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <div class="toast-container" id="toast-container"></div>
+
+  <input type="file" id="import-file" accept=".json" style="display: none;" onchange="importData(this.files)">
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// Application State
+const state = {
+  projects: [],
+  monitoringPoints: [],
+  activities: [],
+  teamMembers: [],
+  selectedTab: 'dashboard',
+  projectMap: null,
+  monitoringMap: null,
+  projectLocationMap: null,
+  monitoringLocationMap: null,
+  projectDetailMap: null,
+  projectLocationMarker: null,
+  monitoringLocationMarker: null,
+  charts: {},
+  tempPhotos: {
+    project: [],
+    monitoring: [],
+    observation: []
+  },
+  currentProject: null,
+  currentMonitoringPoint: null,
+  currentObservation: null,
+  currentProjectFilter: 'all',
+  searchFilters: {
+    projects: '',
+    monitoring: '',
+    team: ''
+  }
+};
+
+// Initialize the application
+document.addEventListener('DOMContentLoaded', function() {
+  try {
+    showLoading(true);
+    loadData();
+    initNavigation();
+    renderProjects();
+    renderMonitoringPoints();
+    renderTeamMembers();
+    updateDashboard();
+    initCharts();
+    
+    setTimeout(() => {
+      initMaps();
+      updateCharts();
+      showLoading(false);
+    }, 100);
+    
+    // Form event listeners
+    document.addEventListener('submit', function(e) {
+      if (e.target.matches('#project-form')) {
+        e.preventDefault();
+        handleProjectSubmit(e);
+      } else if (e.target.matches('#monitoring-form')) {
+        e.preventDefault();
+        handleMonitoringSubmit(e);
+      } else if (e.target.matches('#report-form')) {
+        e.preventDefault();
+        handleReportSubmit(e);
+      } else if (e.target.matches('#team-member-form')) {
+        e.preventDefault();
+        handleTeamMemberSubmit(e);
+      } else if (e.target.matches('#observation-form')) {
+        e.preventDefault();
+        handleObservationSubmit(e);
+      }
+    });
+
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', function(event) {
+      if (!event.target.matches('.dropdown a') && !event.target.closest('.dropdown-content')) {
+        const dropdowns = document.getElementsByClassName('dropdown-content');
+        for (let i = 0; i < dropdowns.length; i++) {
+          const openDropdown = dropdowns[i];
+          if (openDropdown.style.display === 'block') {
+            openDropdown.style.display = 'none';
+          }
+        }
+      }
+    });
+
+    // Set default dates
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('project-start-date').value = today;
+    document.getElementById('observation-date').value = today;
+    
+    const nextYear = new Date();
+    nextYear.setFullYear(nextYear.getFullYear() + 1);
+    document.getElementById('project-end-date').value = nextYear.toISOString().split('T')[0];
+    
+    const firstDay = new Date();
+    firstDay.setDate(1);
+    document.getElementById('report-start-date').value = firstDay.toISOString().split('T')[0];
+    document.getElementById('report-end-date').value = today;
+    
+    initTooltips();
+    populateProjectDropdown('monitoring-project-filter');
+    populateProjectDropdown('observation-project');
+    populateProjectDropdown('report-project');
+    
+  } catch (error) {
+    console.error('Error during initialization:', error);
+    showToast('Error initializing application: ' + error.message, 'error');
+    showLoading(false);
+  }
+});
+
+// Navigation Functions
+function initNavigation() {
+  document.querySelectorAll('.nav-link').forEach(link => {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      const sectionId = this.getAttribute('data-section');
+      showSection(sectionId);
+    });
+  });
+}
+
+function showSection(sectionId) {
+  try {
+    document.querySelectorAll('.section').forEach(section => {
+      section.classList.remove('active');
+    });
+    
+    document.querySelectorAll('.nav-link').forEach(link => {
+      link.classList.remove('active');
+    });
+    
+    const section = document.getElementById(sectionId);
+    if (section) {
+      section.classList.add('active');
+    }
+    
+    const activeLink = document.querySelector(`.nav-link[data-section="${sectionId}"]`);
+    if (activeLink) {
+      activeLink.classList.add('active');
+    }
+    
+    // Special handling for different sections
+    switch(sectionId) {
+      case 'reports':
+        setTimeout(() => updateCharts(), 100);
+        break;
+      case 'data':
+        updateDataSection();
+        break;
+      case 'monitoring':
+        populateProjectDropdown('monitoring-project');
+        populateProjectDropdown('observation-project');
+        populateProjectDropdown('monitoring-project-filter');
+        break;
+      case 'team':
+        populateProjectDropdown('team-member-projects', true);
+        break;
+    }
+    
+    state.selectedTab = sectionId;
+  } catch (error) {
+    console.error('Error showing section:', error);
+    showToast('Error navigating: ' + error.message, 'error');
+  }
+}
+
+// Chart Functions
+function initCharts() {
+  try {
+    const statusCtx = document.getElementById('project-status-chart');
+    if (statusCtx) {
+      state.charts.statusChart = new Chart(statusCtx.getContext('2d'), {
+        type: 'doughnut',
+        data: { 
+          labels: ['Active', 'Planned', 'Completed', 'On Hold'], 
+          datasets: [{
+            data: [0, 0, 0, 0], 
+            backgroundColor: ['#2e7d32', '#ff8f00', '#0288d1', '#d32f2f']
+          }] 
+        },
+        options: { 
+          responsive: true, 
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'right' }
+          }
+        }
+      });
+    }
+    
+    const typesCtx = document.getElementById('restoration-types-chart');
+    if (typesCtx) {
+      state.charts.typesChart = new Chart(typesCtx.getContext('2d'), {
+        type: 'bar',
+        data: { 
+          labels: [], 
+          datasets: [{
+            label: 'Projects', 
+            data: [], 
+            backgroundColor: '#2e7d32'
+          }] 
+        },
+        options: { 
+          responsive: true, 
+          maintainAspectRatio: false,
+          scales: {
+            y: { beginAtZero: true }
+          }
+        }
+      });
+    }
+    
+    const timelineCtx = document.getElementById('project-timeline-chart');
+    if (timelineCtx) {
+      state.charts.timelineChart = new Chart(timelineCtx.getContext('2d'), {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [{
+            label: 'Project Timeline',
+            data: [],
+            borderColor: '#2e7d32',
+            backgroundColor: 'rgba(46, 125, 50, 0.1)',
+            fill: true,
+            tension: 0.4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              type: 'time',
+              time: {
+                unit: 'month'
+              }
+            },
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Number of Projects'
+              }
+            }
+          }
+        }
+      });
+    }
+    
+    const frequencyCtx = document.getElementById('monitoring-frequency-chart');
+    if (frequencyCtx) {
+      state.charts.frequencyChart = new Chart(frequencyCtx.getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels: [],
+          datasets: [{
+            label: 'Observations per Month',
+            data: [],
+            backgroundColor: '#ff8f00'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Number of Observations'
+              }
+            }
+          }
+        }
+      });
+    }
+    
+  } catch (error) {
+    console.error('Error initializing charts:', error);
+  }
+}
+
+function updateCharts() {
+  try {
+    if (state.charts.statusChart) {
+      const statusCounts = {
+        active: state.projects.filter(p => p.status === 'active').length,
+        planned: state.projects.filter(p => p.status === 'planned').length,
+        completed: state.projects.filter(p => p.status === 'completed').length,
+        'on-hold': state.projects.filter(p => p.status === 'on-hold').length
+      };
+      
+      state.charts.statusChart.data.datasets[0].data = [
+        statusCounts.active,
+        statusCounts.planned,
+        statusCounts.completed,
+        statusCounts['on-hold']
+      ];
+      state.charts.statusChart.update();
+    }
+    
+    if (state.charts.typesChart) {
+      const typeCounts = {};
+      state.projects.forEach(project => {
+        typeCounts[project.type] = (typeCounts[project.type] || 0) + 1;
+      });
+      
+      state.charts.typesChart.data.labels = Object.keys(typeCounts).map(type => 
+        type.charAt(0).toUpperCase() + type.slice(1));
+      state.charts.typesChart.data.datasets[0].data = Object.values(typeCounts);
+      state.charts.typesChart.update();
+    }
+    
+    if (state.charts.timelineChart) {
+      const monthlyData = {};
+      state.projects.forEach(project => {
+        const month = project.startDate.substring(0, 7);
+        monthlyData[month] = (monthlyData[month] || 0) + 1;
+      });
+      
+      const sortedMonths = Object.keys(monthlyData).sort();
+      state.charts.timelineChart.data.labels = sortedMonths;
+      state.charts.timelineChart.data.datasets[0].data = sortedMonths.map(month => monthlyData[month]);
+      state.charts.timelineChart.update();
+    }
+    
+    if (state.charts.frequencyChart) {
+      const observationCounts = {};
+      state.monitoringPoints.forEach(point => {
+        if (point.observations) {
+          point.observations.forEach(obs => {
+            const month = obs.date.substring(0, 7);
+            observationCounts[month] = (observationCounts[month] || 0) + 1;
+          });
+        }
+      });
+      
+      const months = [];
+      for (let i = 5; i >= 0; i--) {
+        const date = new Date();
+        date.setMonth(date.getMonth() - i);
+        months.push(date.toISOString().substring(0, 7));
+      }
+      
+      state.charts.frequencyChart.data.labels = months.map(month => {
+        const [year, monthNum] = month.split('-');
+        return new Date(year, monthNum - 1).toLocaleString('default', { month: 'short', year: '2-digit' });
+      });
+      
+      state.charts.frequencyChart.data.datasets[0].data = months.map(month => 
+        observationCounts[month] || 0
+      );
+      state.charts.frequencyChart.update();
+    }
+    
+  } catch (error) {
+    console.error('Error updating charts:', error);
+  }
+}
+
+// Map Functions
+function initMaps() {
+  try {
+    if (document.getElementById('projects-map') && !state.projectMap) {
+      state.projectMap = L.map('projects-map').setView([-33.8688, 151.2093], 11);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(state.projectMap);
+      updateProjectMapMarkers();
+    }
+    
+    if (document.getElementById('project-location-map') && !state.projectLocationMap) {
+      state.projectLocationMap = L.map('project-location-map').setView([-33.8688, 151.2093], 13);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(state.projectLocationMap);
+      
+      state.projectLocationMap.on('click', function(e) {
+        if (state.projectLocationMarker) {
+          state.projectLocationMap.removeLayer(state.projectLocationMarker);
+        }
+        state.projectLocationMarker = L.marker(e.latlng).addTo(state.projectLocationMap);
+        document.getElementById('project-lat').value = e.latlng.lat;
+        document.getElementById('project-lng').value = e.latlng.lng;
+      });
+    }
+    
+    if (document.getElementById('monitoring-location-map') && !state.monitoringLocationMap) {
+      state.monitoringLocationMap = L.map('monitoring-location-map').setView([-33.8688, 151.2093], 13);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(state.monitoringLocationMap);
+      
+      state.monitoringLocationMap.on('click', function(e) {
+        if (state.monitoringLocationMarker) {
+          state.monitoringLocationMap.removeLayer(state.monitoringLocationMarker);
+        }
+        state.monitoringLocationMarker = L.marker(e.latlng).addTo(state.monitoringLocationMap);
+        document.getElementById('monitoring-lat').value = e.latlng.lat;
+        document.getElementById('monitoring-lng').value = e.latlng.lng;
+      });
+    }
+  } catch (error) {
+    console.error('Error initializing maps:', error);
+    showToast('Error initializing maps: ' + error.message, 'error');
+  }
+}
+
+function updateProjectMapMarkers() {
+  if (!state.projectMap) return;
+  
+  // Clear existing markers
+  state.projectMap.eachLayer(layer => {
+    if (layer instanceof L.Marker) {
+      state.projectMap.removeLayer(layer);
+    }
+  });
+  
+  // Add markers for each project
+  state.projects.forEach(project => {
+    const icon = L.divIcon({
+      html: `<div style="background-color: ${getStatusColor(project.status)}; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; border: 2px solid white;">
+              <i class="fas fa-${getProjectIcon(project.type)}" style="font-size: 14px;"></i>
+            </div>`,
+      className: 'custom-marker',
+      iconSize: [30, 30],
+      iconAnchor: [15, 15]
+    });
+    
+    const marker = L.marker(project.location.coords, { icon: icon })
+      .addTo(state.projectMap)
+      .bindPopup(`<b>${project.name}</b><br>${project.type} restoration<br><small>${project.location.name}</small>`)
+      .on('click', () => viewProjectDetails(project.id));
+  });
+  
+  // Fit map to show all markers
+  if (state.projects.length > 0) {
+    const group = new L.featureGroup(state.projects.map(p => L.marker(p.location.coords)));
+    state.projectMap.fitBounds(group.getBounds().pad(0.1));
+  }
+}
+
+function initProjectDetailMap(project) {
+  if (!project || !project.location || !project.location.coords) return null;
+  
+  const mapContainer = document.getElementById('project-detail-map');
+  if (!mapContainer) return null;
+  
+  // Clear any existing map
+  if (state.projectDetailMap) {
+    state.projectDetailMap.remove();
+  }
+  
+  // Create new map
+  const map = L.map('project-detail-map').setView(project.location.coords, 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  }).addTo(map);
+  
+  // Add project marker
+  const icon = L.divIcon({
+    html: `<div style="background-color: ${getStatusColor(project.status)}; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+            <i class="fas fa-${getProjectIcon(project.type)}" style="font-size: 18px;"></i>
+          </div>`,
+    className: 'custom-marker',
+    iconSize: [40, 40],
+    iconAnchor: [20, 20]
+  });
+  
+  L.marker(project.location.coords, { icon: icon })
+    .addTo(map)
+    .bindPopup(`<b>${project.name}</b><br>${project.type} restoration<br><small>${project.location.name}</small>`)
+    .openPopup();
+  
+  // Add monitoring point markers if any
+  const projectMonitoringPoints = state.monitoringPoints.filter(p => p.projectId === project.id);
+  projectMonitoringPoints.forEach(point => {
+    const monitoringIcon = L.divIcon({
+      html: `<div style="background-color: #0288d1; width: 25px; height: 25px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; border: 2px solid white;">
+              <i class="fas fa-binoculars" style="font-size: 12px;"></i>
+            </div>`,
+      className: 'custom-marker',
+      iconSize: [25, 25],
+      iconAnchor: [12.5, 12.5]
+    });
+    
+    L.marker(point.coords, { icon: monitoringIcon })
+      .addTo(map)
+      .bindPopup(`<b>${point.name}</b><br>${point.type} monitoring<br><small>${point.observations ? point.observations.length : 0} observations</small>`);
+  });
+  
+  state.projectDetailMap = map;
+  return map;
+}
+
+// Data Management Functions
+function loadData() {
+  try {
+    const savedProjects = localStorage.getItem('erpm-projects');
+    const savedMonitoring = localStorage.getItem('erpm-monitoring');
+    const savedActivities = localStorage.getItem('erpm-activities');
+    const savedTeam = localStorage.getItem('erpm-team');
+    
+    if (savedProjects) state.projects = JSON.parse(savedProjects);
+    if (savedMonitoring) state.monitoringPoints = JSON.parse(savedMonitoring);
+    if (savedActivities) state.activities = JSON.parse(savedActivities);
+    if (savedTeam) state.teamMembers = JSON.parse(savedTeam);
+    
+    // Load sample data if no data exists
+    if (state.projects.length === 0) {
+      state.projects = [
+        {
+          id: '1',
+          name: 'Riverside Wetland Restoration',
+          type: 'wetland',
+          status: 'active',
+          location: {
+            name: 'Smith River, NSW',
+            coords: [-33.8688, 151.2093]
+          },
+          description: 'Restoring 5ha of degraded wetland habitat with native vegetation and improving water quality.',
+          startDate: '2023-01-01',
+          endDate: '2023-12-31',
+          area: 5.2,
+          budget: 125000,
+          photos: [],
+          milestones: [
+            {
+              id: '1',
+              name: 'Site Assessment',
+              date: '2023-01-15',
+              completed: true,
+              description: 'Initial ecological assessment completed'
+            },
+            {
+              id: '2',
+              name: 'Planting Phase 1',
+              date: '2023-03-20',
+              completed: true,
+              description: 'Planted 200 native sedges and 50 trees'
+            },
+            {
+              id: '3',
+              name: 'Planting Phase 2',
+              date: '2023-06-15',
+              completed: false,
+              description: 'Plant remaining vegetation'
+            }
+          ]
+        }
+      ];
+      saveData();
+    }
+    
+    if (state.monitoringPoints.length === 0) {
+      state.monitoringPoints = [
+        {
+          id: 'monitoring-1',
+          projectId: '1',
+          name: 'Wetland Vegetation Plot A',
+          type: 'vegetation',
+          coords: [-33.8690, 151.2095],
+          photos: [],
+          observations: []
+        }
+      ];
+      saveData();
+    }
+    
+    if (state.teamMembers.length === 0) {
+      state.teamMembers = [
+        {
+          id: 'member-1',
+          name: 'John Smith',
+          role: 'project-manager',
+          email: 'john.smith@example.com',
+          phone: '+61 412 345 678',
+          status: 'active',
+          projects: ['1']
+        }
+      ];
+      saveData();
+    }
+    
+  } catch (error) {
+    console.error('Error loading data:', error);
+    showToast('Error loading saved data: ' + error.message, 'error');
+  }
+}
+
+function saveData() {
+  try {
+    localStorage.setItem('erpm-projects', JSON.stringify(state.projects));
+    localStorage.setItem('erpm-monitoring', JSON.stringify(state.monitoringPoints));
+    localStorage.setItem('erpm-activities', JSON.stringify(state.activities));
+    localStorage.setItem('erpm-team', JSON.stringify(state.teamMembers));
+  } catch (error) {
+    console.error('Error saving data:', error);
+    showToast('Error saving data: ' + error.message, 'error');
+  }
+}
+
+function exportData() {
+  try {
+    const data = {
+      version: 2,
+      exportedAt: new Date().toISOString(),
+      projects: state.projects,
+      monitoringPoints: state.monitoringPoints,
+      activities: state.activities,
+      teamMembers: state.teamMembers
+    };
+    
+    const dataStr = JSON.stringify(data, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    
+    const exportFileDefaultName = `erpm-data-${new Date().toISOString().split('T')[0]}.json`;
+    
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+    
+    showToast('Data exported successfully', 'success');
+  } catch (error) {
+    console.error('Error exporting data:', error);
+    showToast('Error exporting data: ' + error.message, 'error');
+  }
+}
+
+function backupData() {
+  try {
+    const data = {
+      version: 2,
+      backedUpAt: new Date().toISOString(),
+      projects: state.projects,
+      monitoringPoints: state.monitoringPoints,
+      activities: state.activities,
+      teamMembers: state.teamMembers
+    };
+    
+    const backupKey = `erpm-backup-${new Date().toISOString().split('T')[0]}`;
+    localStorage.setItem(backupKey, JSON.stringify(data));
+    
+    const backupKeys = Object.keys(localStorage).filter(key => key.startsWith('erpm-backup-'));
+    if (backupKeys.length > 5) {
+      backupKeys.sort().slice(0, -5).forEach(key => localStorage.removeItem(key));
+    }
+    
+    showToast('Data backed up successfully', 'success');
+  } catch (error) {
+    console.error('Error backing up data:', error);
+    showToast('Error backing up data: ' + error.message, 'error');
+  }
+}
+
+function importData(files) {
+  if (!files || files.length === 0) return;
+  
+  const file = files[0];
+  const reader = new FileReader();
+  
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      
+      if (!data.projects || !data.monitoringPoints || !data.activities || !data.teamMembers) {
+        throw new Error('Invalid data format: Missing required data sections');
+      }
+      
+      if (!confirm('Importing data will replace all current data. Continue?')) {
+        return;
+      }
+      
+      state.projects = data.projects;
+      state.monitoringPoints = data.monitoringPoints;
+      state.activities = data.activities;
+      state.teamMembers = data.teamMembers;
+      
+      saveData();
+      renderProjects();
+      renderMonitoringPoints();
+      renderTeamMembers();
+      updateDashboard();
+      updateProjectMapMarkers();
+      
+      showToast('Data imported successfully', 'success');
+    } catch (error) {
+      console.error('Error importing data:', error);
+      showToast('Error importing data: ' + error.message, 'error');
+    }
+  };
+  
+  reader.onerror = function() {
+    showToast('Error reading file', 'error');
+  };
+  
+  reader.readAsText(file);
+}
+
+function updateDataSection() {
+  document.getElementById('data-projects-count').textContent = state.projects.length;
+  
+  const totalObservations = state.monitoringPoints.reduce((sum, point) => 
+    sum + (point.observations ? point.observations.length : 0), 0
+  );
+  document.getElementById('data-monitoring-count').textContent = state.monitoringPoints.length;
+  document.getElementById('data-observations-count').textContent = totalObservations;
+  document.getElementById('data-team-count').textContent = state.teamMembers.length;
+  
+  updateStorageInfo();
+}
+
+function updateStorageInfo() {
+  try {
+    let totalSize = 0;
+    const keys = ['erpm-projects', 'erpm-monitoring', 'erpm-activities', 'erpm-team'];
+    
+    keys.forEach(key => {
+      const item = localStorage.getItem(key);
+      if (item) {
+        totalSize += new Blob([item]).size;
+      }
+    });
+    
+    const storageInfo = document.getElementById('storage-info');
+    if (storageInfo) {
+      storageInfo.innerHTML = `
+        <p><strong>Total Data Size:</strong> ${(totalSize / 1024).toFixed(2)} KB</p>
+        <p><strong>Last Backup:</strong> ${getLastBackupDate()}</p>
+        <p><strong>Data Version:</strong> 2.0</p>
+      `;
+    }
+  } catch (error) {
+    console.error('Error updating storage info:', error);
+  }
+}
+
+function getLastBackupDate() {
+  const backupKeys = Object.keys(localStorage).filter(key => key.startsWith('erpm-backup-'));
+  if (backupKeys.length === 0) return 'Never';
+  
+  const latestBackup = backupKeys.sort().pop();
+  const timestamp = latestBackup.replace('erpm-backup-', '');
+  return new Date(timestamp).toLocaleDateString();
+}
+
+// Project Functions
+function showProjectForm(projectId = null) {
+  try {
+    const formContainer = document.getElementById('project-form-container');
+    const formTitle = document.getElementById('project-form-title');
+    const previewContainer = document.getElementById('photo-preview');
+    
+    if (projectId) {
+      const project = state.projects.find(p => p.id === projectId);
+      if (!project) return;
+      
+      formTitle.textContent = 'Edit Project';
+      document.getElementById('project-id').value = project.id;
+      document.getElementById('project-name').value = project.name;
+      document.getElementById('project-type').value = project.type;
+      document.getElementById('project-status').value = project.status;
+      document.getElementById('project-location').value = project.location.name;
+      document.getElementById('project-lat').value = project.location.coords[0];
+      document.getElementById('project-lng').value = project.location.coords[1];
+      document.getElementById('project-start-date').value = project.startDate;
+      document.getElementById('project-end-date').value = project.endDate || '';
+      document.getElementById('project-area').value = project.area || '';
+      document.getElementById('project-budget').value = project.budget || '';
+      document.getElementById('project-description').value = project.description || '';
+      
+      if (state.projectLocationMap && state.projectLocationMarker) {
+        state.projectLocationMap.removeLayer(state.projectLocationMarker);
+      }
+      if (state.projectLocationMap) {
+        state.projectLocationMarker = L.marker(project.location.coords).addTo(state.projectLocationMap);
+        state.projectLocationMap.setView(project.location.coords, 13);
+      }
+      
+      // Handle photo previews
+      previewContainer.innerHTML = '';
+      state.tempPhotos.project = [...project.photos];
+      
+      project.photos.forEach(photo => {
+        const imgContainer = document.createElement('div');
+        imgContainer.style.position = 'relative';
+        imgContainer.style.display = 'inline-block';
+        imgContainer.style.margin = '5px';
+        
+        const img = document.createElement('img');
+        img.src = photo.data || photo.url;
+        img.className = 'photo-thumbnail';
+        
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'delete-photo';
+        deleteBtn.innerHTML = '<i class="fas fa-times"></i>';
+        deleteBtn.onclick = (ev) => {
+          ev.stopPropagation();
+          imgContainer.remove();
+          state.tempPhotos.project = state.tempPhotos.project.filter(p => 
+            (p.data !== photo.data) && (p.url !== photo.url)
+          );
+        };
+        
+        imgContainer.appendChild(img);
+        imgContainer.appendChild(deleteBtn);
+        previewContainer.appendChild(imgContainer);
+      });
+    } else {
+      formTitle.textContent = 'Create New Project';
+      document.getElementById('project-form').reset();
+      previewContainer.innerHTML = '';
+      state.tempPhotos.project = [];
+      
+      if (state.projectLocationMap) {
+        const center = state.projectLocationMap.getCenter();
+        document.getElementById('project-lat').value = center.lat;
+        document.getElementById('project-lng').value = center.lng;
+      }
+    }
+    
+    document.getElementById('projects-list').style.display = 'none';
+    formContainer.style.display = 'block';
+  } catch (error) {
+    console.error('Error showing project form:', error);
+    showToast('Error loading project form: ' + error.message, 'error');
+  }
+}
+
+function hideProjectForm() {
+  document.getElementById('project-form-container').style.display = 'none';
+  document.getElementById('projects-list').style.display = 'grid';
+}
+
+function handleProjectSubmit(e) {
+  e.preventDefault();
+  
+  if (!validateProjectForm()) {
+    showToast('Please fix the errors in the form', 'error');
+    return;
+  }
+  
+  const submitBtn = document.getElementById('project-form-submit');
+  const submitText = document.getElementById('submit-text');
+  const submitSpinner = document.getElementById('submit-spinner');
+  
+  submitText.textContent = 'Saving...';
+  submitSpinner.style.display = 'inline-block';
+  submitBtn.disabled = true;
+  
+  setTimeout(() => {
+    try {
+      const projectId = document.getElementById('project-id').value;
+      const isEdit = !!projectId;
+      
+      const project = {
+        id: projectId || 'project-' + Date.now(),
+        name: document.getElementById('project-name').value.trim(),
+        type: document.getElementById('project-type').value,
+        status: document.getElementById('project-status').value,
+        location: {
+          name: document.getElementById('project-location').value.trim(),
+          coords: [
+            parseFloat(document.getElementById('project-lat').value),
+            parseFloat(document.getElementById('project-lng').value)
+          ]
+        },
+        description: document.getElementById('project-description').value.trim(),
+        startDate: document.getElementById('project-start-date').value,
+        endDate: document.getElementById('project-end-date').value || null,
+        area: parseFloat(document.getElementById('project-area').value) || null,
+        budget: parseFloat(document.getElementById('project-budget').value) || null,
+        photos: [...state.tempPhotos.project],
+        milestones: isEdit ? (state.projects.find(p => p.id === projectId)?.milestones || []) : []
+      };
+      
+      if (isEdit) {
+        const index = state.projects.findIndex(p => p.id === projectId);
+        if (index !== -1) {
+          state.projects[index] = project;
+          addActivity(project.id, 'project-update', `Updated project: ${project.name}`);
+          showToast('Project updated successfully', 'success');
+        }
+      } else {
+        state.projects.push(project);
+        addActivity(project.id, 'project-creation', `Created new project: ${project.name}`);
+        showToast('Project created successfully', 'success');
+      }
+      
+      saveData();
+      renderProjects();
+      updateDashboard();
+      hideProjectForm();
+      e.target.reset();
+      updateProjectMapMarkers();
+    } catch (error) {
+      console.error('Error saving project:', error);
+      showToast('Error saving project: ' + error.message, 'error');
+    } finally {
+      submitText.textContent = 'Save Project';
+      submitSpinner.style.display = 'none';
+      submitBtn.disabled = false;
+    }
+  }, 1000);
+}
+
+function validateProjectForm() {
+  let isValid = true;
+  const errors = {};
+  
+  document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
+  document.querySelectorAll('.error-message').forEach(el => el.textContent = '');
+  
+  const name = document.getElementById('project-name').value.trim();
+  if (!name) {
+    errors.name = 'Project name is required';
+    isValid = false;
+  }
+  
+  const type = document.getElementById('project-type').value;
+  if (!type) {
+    errors.type = 'Restoration type is required';
+    isValid = false;
+  }
+  
+  const location = document.getElementById('project-location').value.trim();
+  if (!location) {
+    errors.location = 'Location name is required';
+    isValid = false;
+  }
+  
+  const lat = document.getElementById('project-lat').value;
+  const lng = document.getElementById('project-lng').value;
+  if (!lat || !lng) {
+    errors.coords = 'Please select a location on the map';
+    isValid = false;
+  }
+  
+  const startDate = document.getElementById('project-start-date').value;
+  if (!startDate) {
+    errors.startDate = 'Start date is required';
+    isValid = false;
+  }
+  
+  Object.keys(errors).forEach(field => {
+    const element = document.getElementById(`project-${field}`);
+    const errorElement = document.getElementById(`project-${field}-error`);
+    if (element && errorElement) {
+      element.classList.add('error');
+      errorElement.textContent = errors[field];
+    }
+  });
+  
+  return isValid;
+}
+
+function renderProjects() {
+  const container = document.getElementById('projects-list');
+  if (!container) return;
+  
+  container.innerHTML = '';
+  
+  let projectsToShow = [...state.projects];
+  
+  if (state.currentProjectFilter !== 'all') {
+    projectsToShow = projectsToShow.filter(p => p.status === state.currentProjectFilter);
+  }
+  
+  if (state.searchFilters.projects) {
+    projectsToShow = projectsToShow.filter(p => 
+      p.name.toLowerCase().includes(state.searchFilters.projects) ||
+      p.location.name.toLowerCase().includes(state.searchFilters.projects) ||
+      p.description.toLowerCase().includes(state.searchFilters.projects)
+    );
+  }
+  
+  const typeFilter = document.getElementById('project-type-filter').value;
+  if (typeFilter) {
+    projectsToShow = projectsToShow.filter(p => p.type === typeFilter);
+  }
+  
+  if (projectsToShow.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state" style="grid-column: 1 / -1;">
+        <i class="fas fa-folder-open"></i>
+        <p>No projects found</p>
+      </div>
+    `;
+    return;
+  }
+  
+  projectsToShow.forEach(project => {
+    const card = document.createElement('div');
+    card.className = 'card project-card';
+    
+    let progress = 0;
+    if (project.milestones && project.milestones.length > 0) {
+      const completed = project.milestones.filter(m => m.completed).length;
+      progress = Math.round((completed / project.milestones.length) * 100);
+    }
+    
+    card.innerHTML = `
+      <h3>${escapeHtml(project.name)}</h3>
+      <div class="project-meta">
+        <span><i class="fas fa-${getProjectIcon(project.type)}"></i> ${project.type}</span>
+        <span><i class="fas fa-map-marker-alt"></i> ${escapeHtml(project.location.name)}</span>
+      </div>
+      
+      ${project.photos && project.photos.length > 0 ? `
+        <div style="margin: 10px 0;">
+          <img src="${project.photos[0].data || project.photos[0].url}" 
+               class="photo-thumbnail" 
+               style="width: 100%; height: 150px; object-fit: cover; cursor: pointer;"
+               onclick="viewAllPhotos('${project.id}', 'project')">
+          ${project.photos.length > 1 ? `<small>+${project.photos.length - 1} more photos</small>` : ''}
+        </div>
+      ` : ''}
+      
+      ${project.description ? `<p style="flex-grow: 1;">${escapeHtml(project.description.substring(0, 100))}${project.description.length > 100 ? '...' : ''}</p>` : ''}
+      
+      ${progress > 0 ? `
+        <div style="margin: 10px 0;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+            <small>Progress</small>
+            <small>${progress}%</small>
+          </div>
+          <div style="height: 6px; background-color: #eee; border-radius: 3px; overflow: hidden;">
+            <div style="width: ${progress}%; height: 100%; background-color: var(--primary);"></div>
+          </div>
+        </div>
+      ` : ''}
+      
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+        <span class="status-badge ${project.status}">${project.status}</span>
+        <div style="display: flex; gap: 5px;">
+          <button class="btn btn-outline" onclick="viewProjectDetails('${project.id}')">
+            <i class="fas fa-eye"></i>
+          </button>
+          <button class="btn btn-outline" onclick="showProjectForm('${project.id}')">
+            <i class="fas fa-edit"></i>
+          </button>
+          <button class="btn btn-outline" onclick="deleteProject('${project.id}')">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </div>
+    `;
+
+    container.appendChild(card);
+  });
+}
+
+function deleteProject(projectId) {
+  if (!confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
+    return;
+  }
+  
+  try {
+    const project = state.projects.find(p => p.id === projectId);
+    if (!project) return;
+    
+    state.monitoringPoints = state.monitoringPoints.filter(p => p.projectId !== projectId);
+    state.projects = state.projects.filter(p => p.id !== projectId);
+    addActivity(null, 'project-deletion', `Deleted project: ${project.name}`);
+    
+    saveData();
+    renderProjects();
+    updateDashboard();
+    updateProjectMapMarkers();
+    
+    showToast('Project deleted successfully', 'success');
+  } catch (error) {
+    console.error('Error deleting project:', error);
+    showToast('Error deleting project: ' + error.message, 'error');
+  }
+}
+
+function viewProjectDetails(projectId) {
+  const project = state.projects.find(p => p.id === projectId);
+  if (!project) return;
+  
+  state.currentProject = project;
+  
+  const modal = document.getElementById('project-modal');
+  const title = document.getElementById('modal-project-title');
+  const content = document.getElementById('modal-project-content');
+  
+  title.textContent = project.name;
+  
+  let progress = 0;
+  if (project.milestones && project.milestones.length > 0) {
+    const completed = project.milestones.filter(m => m.completed).length;
+    progress = Math.round((completed / project.milestones.length) * 100);
+  }
+  
+  const startDate = new Date(project.startDate).toLocaleDateString();
+  const endDate = project.endDate ? new Date(project.endDate).toLocaleDateString() : 'Ongoing';
+  
+  content.innerHTML = `
+    <div class="grid" style="grid-template-columns: 2fr 1fr; gap: 20px;">
+      <div>
+        <h3>Project Overview</h3>
+        <p>${project.description || 'No description provided.'}</p>
+        
+        <div class="project-meta" style="margin: 15px 0;">
+          <span><i class="fas fa-${getProjectIcon(project.type)}"></i> ${project.type} Restoration</span>
+          <span><i class="fas fa-map-marker-alt"></i> ${escapeHtml(project.location.name)}</span>
+          <span><i class="fas fa-calendar"></i> ${startDate} - ${endDate}</span>
+        </div>
+        
+        ${project.area ? `<p><strong>Area:</strong> ${project.area} hectares</p>` : ''}
+        ${project.budget ? `<p><strong>Budget:</strong> $${project.budget.toLocaleString()}</p>` : ''}
+        
+        <div style="margin: 20px 0;">
+          <h4>Progress</h4>
+          <div style="height: 10px; background-color: #eee; border-radius: 5px; overflow: hidden; margin:10px 0;">
+            <div style="width: ${progress}%; height: 100%; background-color: var(--primary);"></div>
+          </div>
+          <p>${progress}% complete</p>
+        </div>
+      </div>
+      
+      <div>
+        <h4>Quick Stats</h4>
+        <div style="background: #f5f5f5; padding: 15px; border-radius: 8px;">
+          <p><strong>Status:</strong> <span class="status-badge ${project.status}">${project.status}</span></p>
+          <p><strong>Monitoring Points:</strong> ${state.monitoringPoints.filter(p => p.projectId === projectId).length}</p>
+          <p><strong>Team Members:</strong> ${state.teamMembers.filter(m => m.projects.includes(projectId)).length}</p>
+        </div>
+        
+        <h4 style="margin-top: 20px;">Project Photos (${project.photos.length})</h4>
+        <div class="photo-preview" style="margin-top: 10px;">
+          ${project.photos.length > 0 ? 
+            project.photos.slice(0, 3).map(photo => 
+              `<img src="${photo.data || photo.url}" 
+                    class="photo-thumbnail" 
+                    style="width: 80px; height: 80px; cursor: pointer;"
+                    onclick="viewAllPhotos('${project.id}', 'project')">`
+            ).join('') : 
+            '<p>No photos yet</p>'
+          }
+          ${project.photos.length > 3 ? 
+            `<button class="btn btn-outline" onclick="viewAllPhotos('${project.id}', 'project')" style="margin-left: 10px;">
+               View All ${project.photos.length} Photos
+             </button>` : 
+            ''
+          }
+        </div>
+      </div>
+    </div>
+    
+    <div class="project-detail-map-container">
+      <h3>Project Location</h3>
+      <div id="project-detail-map" class="map-container"></div>
+    </div>
+    
+    ${project.milestones && project.milestones.length > 0 ? `
+      <div style="margin-top: 20px;">
+        <h3>Project Timeline</h3>
+        <div class="timeline">
+          ${project.milestones.map(milestone => `
+            <div class="timeline-item">
+              <div class="timeline-date">${new Date(milestone.date).toLocaleDateString()}</div>
+              <div class="timeline-content">
+                <h4>${milestone.name} ${milestone.completed ? '<span class="status-badge completed" style="font-size: 0.7rem;">Completed</span>' : '<span class="status-badge planned" style="font-size: 0.7rem;">Pending</span>'}</h4>
+                <p>${milestone.description}</p>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    ` : ''}
+  `;
+  
+  modal.style.display = 'flex';
+  
+  // Initialize the project detail map after the modal is displayed
+  setTimeout(() => {
+    initProjectDetailMap(project);
+  }, 100);
+}
+
+function closeModal() {
+  const modal = document.getElementById('project-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+function editCurrentProject() {
+  if (state.currentProject) {
+    showProjectForm(state.currentProject.id);
+    closeModal();
+  }
+}
+
+// Monitoring Functions
+function showMonitoringTab(tabId) {
+  try {
+    const monitoringSection = document.getElementById('monitoring');
+    const monitoringTabs = monitoringSection.querySelectorAll('.tab');
+    const monitoringContents = monitoringSection.querySelectorAll('.tab-content');
+    
+    monitoringTabs.forEach(tab => tab.classList.remove('active'));
+    monitoringContents.forEach(content => content.classList.remove('active'));
+    
+    const activeTab = Array.from(monitoringTabs).find(tab => 
+      tab.textContent.toLowerCase().includes(tabId)
+    );
+    if (activeTab) {
+      activeTab.classList.add('active');
+    }
+    
+    const activeContent = document.getElementById(`monitoring-${tabId}`);
+    if (activeContent) {
+      activeContent.classList.add('active');
+    }
+    
+    if (tabId === 'new') {
+      populateProjectDropdown('monitoring-project');
+      document.getElementById('monitoring-photo-preview').innerHTML = '';
+      state.tempPhotos.monitoring = [];
+    } else if (tabId === 'observations') {
+      renderObservations();
+    }
+  } catch (error) {
+    console.error('Error showing monitoring tab:', error);
+    showToast('Error switching tabs: ' + error.message, 'error');
+  }
+}
+
+function setProjectFilter(status) {
+  state.currentProjectFilter = status;
+  
+  const projectTabs = document.querySelectorAll('#projects .tab');
+  projectTabs.forEach(tab => {
+    tab.classList.remove('active');
+    if (tab.textContent.toLowerCase().includes(status)) {
+      tab.classList.add('active');
+    }
+  });
+  
+  renderProjects();
+}
+
+function filterProjects() {
+  const searchTerm = document.getElementById('project-search').value.toLowerCase();
+  const typeFilter = document.getElementById('project-type-filter').value;
+  
+  state.searchFilters.projects = searchTerm;
+  renderProjects();
+}
+
+function renderMonitoringPoints(projectFilter = '') {
+  const container = document.getElementById('monitoring-points-list');
+  if (!container) return;
+  
+  container.innerHTML = '';
+  
+  let pointsToShow = [...state.monitoringPoints];
+  
+  if (projectFilter) {
+    pointsToShow = pointsToShow.filter(p => p.projectId === projectFilter);
+  }
+  
+  if (state.searchFilters.monitoring) {
+    pointsToShow = pointsToShow.filter(p => 
+      p.name.toLowerCase().includes(state.searchFilters.monitoring)
+    );
+  }
+  
+  if (pointsToShow.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state" style="grid-column: 1 / -1;">
+        <i class="fas fa-binoculars"></i>
+        <p>No monitoring points found</p>
+      </div>
+    `;
+    return;
+  }
+  
+  pointsToShow.forEach(point => {
+    const project = state.projects.find(p => p.id === point.projectId);
+    const card = document.createElement('div');
+    card.className = 'card project-card';
+    
+    // Show first photo if available
+    const firstPhoto = point.photos && point.photos.length > 0 ? point.photos[0] : null;
+    
+    card.innerHTML = `
+      <h3>${escapeHtml(point.name)}</h3>
+      <div class="project-meta">
+        <span><i class="fas fa-${getMonitoringIcon(point.type)}"></i> ${point.type}</span>
+        <span><i class="fas fa-folder"></i> ${project ? escapeHtml(project.name) : 'Unknown Project'}</span>
+      </div>
+      
+      ${firstPhoto ? `
+        <div style="margin: 10px 0;">
+          <img src="${firstPhoto.data || firstPhoto.url}" 
+               class="photo-thumbnail" 
+               style="width: 100%; height: 150px; object-fit: cover; cursor: pointer;"
+               onclick="viewAllPhotos('${point.id}', 'monitoring')">
+          ${point.photos.length > 1 ? `<small>+${point.photos.length - 1} more photos</small>` : ''}
+        </div>
+      ` : ''}
+      
+      <p><strong>Observations:</strong> ${point.observations ? point.observations.length : 0}</p>
+      <p><strong>Last Observation:</strong> ${point.observations && point.observations.length > 0 ? 
+        new Date(point.observations[point.observations.length - 1].date).toLocaleDateString() : 
+        'Never'}</p>
+      
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+        <div style="display: flex; gap: 5px;">
+          <button class="btn btn-outline" onclick="addObservation('${point.id}')">
+            <i class="fas fa-plus"></i> Observation
+          </button>
+          <button class="btn btn-outline" onclick="viewObservations('${point.id}')">
+            <i class="fas fa-eye"></i> View
+          </button>
+        </div>
+        <button class="btn btn-outline" onclick="deleteMonitoringPoint('${point.id}')">
+          <i class="fas fa-trash"></i>
+        </button>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function filterMonitoringPoints() {
+  const searchTerm = document.getElementById('monitoring-search').value.toLowerCase();
+  const projectFilter = document.getElementById('monitoring-project-filter').value;
+  
+  state.searchFilters.monitoring = searchTerm;
+  renderMonitoringPoints(projectFilter);
+}
+
+function handleMonitoringSubmit(e) {
+  e.preventDefault();
+  
+  const monitoringId = document.getElementById('monitoring-id').value;
+  const projectId = document.getElementById('monitoring-project').value;
+  const name = document.getElementById('monitoring-name').value.trim();
+  const type = document.getElementById('monitoring-type').value;
+  const lat = document.getElementById('monitoring-lat').value;
+  const lng = document.getElementById('monitoring-lng').value;
+  
+  if (!projectId || !name || !type || !lat || !lng) {
+    showToast('Please fill in all required fields', 'error');
+    return;
+  }
+  
+  const monitoringPoint = {
+    id: monitoringId || 'monitoring-' + Date.now(),
+    projectId: projectId,
+    name: name,
+    type: type,
+    coords: [parseFloat(lat), parseFloat(lng)],
+    photos: [...state.tempPhotos.monitoring],
+    observations: monitoringId ? 
+      (state.monitoringPoints.find(m => m.id === monitoringId)?.observations || []) : []
+  };
+  
+  if (monitoringId) {
+    const index = state.monitoringPoints.findIndex(m => m.id === monitoringId);
+    if (index !== -1) {
+      state.monitoringPoints[index] = monitoringPoint;
+    }
+  } else {
+    state.monitoringPoints.push(monitoringPoint);
+  }
+  
+  saveData();
+  renderMonitoringPoints();
+  showMonitoringTab('all');
+  showToast('Monitoring point saved successfully', 'success');
+}
+
+function deleteMonitoringPoint(pointId) {
+  if (!confirm('Are you sure you want to delete this monitoring point? All observations will also be deleted.')) {
+    return;
+  }
+  
+  state.monitoringPoints = state.monitoringPoints.filter(p => p.id !== pointId);
+  saveData();
+  renderMonitoringPoints();
+  showToast('Monitoring point deleted', 'success');
+}
+
+// Observation Functions
+function addObservation(pointId) {
+  state.currentMonitoringPoint = state.monitoringPoints.find(p => p.id === pointId);
+  if (!state.currentMonitoringPoint) return;
+  
+  const modal = document.getElementById('observation-modal');
+  const title = document.getElementById('modal-observation-title');
+  
+  title.textContent = `Add Observation for ${state.currentMonitoringPoint.name}`;
+  document.getElementById('observation-point-id').value = pointId;
+  document.getElementById('observation-id').value = '';
+  document.getElementById('observation-form').reset();
+  document.getElementById('observation-photo-preview').innerHTML = '';
+  state.tempPhotos.observation = [];
+  
+  modal.style.display = 'flex';
+}
+
+function closeObservationModal() {
+  const modal = document.getElementById('observation-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+function handleObservationSubmit(e) {
+  e.preventDefault();
+  
+  const pointId = document.getElementById('observation-point-id').value;
+  const observationId = document.getElementById('observation-id').value;
+  const date = document.getElementById('observation-date').value;
+  const notes = document.getElementById('observation-notes').value.trim();
+  
+  if (!date || !notes) {
+    showToast('Please fill in all required fields', 'error');
+    return;
+  }
+  
+  const observation = {
+    id: observationId || 'obs-' + Date.now(),
+    date: date,
+    notes: notes,
+    weather: document.getElementById('observation-weather').value.trim(),
+    temp: document.getElementById('observation-temp').value ? parseFloat(document.getElementById('observation-temp').value) : null,
+    photos: [...state.tempPhotos.observation]
+  };
+  
+  const pointIndex = state.monitoringPoints.findIndex(p => p.id === pointId);
+  if (pointIndex === -1) return;
+  
+  if (observationId) {
+    const obsIndex = state.monitoringPoints[pointIndex].observations.findIndex(o => o.id === observationId);
+    if (obsIndex !== -1) {
+      state.monitoringPoints[pointIndex].observations[obsIndex] = observation;
+    }
+  } else {
+    if (!state.monitoringPoints[pointIndex].observations) {
+      state.monitoringPoints[pointIndex].observations = [];
+    }
+    state.monitoringPoints[pointIndex].observations.push(observation);
+  }
+  
+  saveData();
+  renderMonitoringPoints();
+  closeObservationModal();
+  showToast('Observation saved successfully', 'success');
+}
+
+function filterObservations() {
+  renderObservations();
+}
+
+function renderObservations() {
+  const container = document.getElementById('observations-list');
+  if (!container) return;
+  
+  container.innerHTML = '';
+  
+  const allObservations = [];
+  state.monitoringPoints.forEach(point => {
+    if (point.observations) {
+      point.observations.forEach(obs => {
+        allObservations.push({
+          ...obs,
+          pointName: point.name,
+          projectId: point.projectId,
+          pointId: point.id
+        });
+      });
+    }
+  });
+  
+  let filteredObservations = [...allObservations];
+  
+  const projectFilter = document.getElementById('observation-project').value;
+  if (projectFilter) {
+    filteredObservations = filteredObservations.filter(obs => 
+      obs.projectId === projectFilter
+    );
+  }
+  
+  const dateFilter = document.getElementById('observation-date-filter').value;
+  const today = new Date();
+  if (dateFilter === 'today') {
+    filteredObservations = filteredObservations.filter(obs => 
+      new Date(obs.date).toDateString() === today.toDateString()
+    );
+  } else if (dateFilter === 'week') {
+    const weekAgo = new Date(today);
+    weekAgo.setDate(today.getDate() - 7);
+    filteredObservations = filteredObservations.filter(obs => 
+      new Date(obs.date) >= weekAgo
+    );
+  } else if (dateFilter === 'month') {
+    const monthAgo = new Date(today);
+    monthAgo.setMonth(today.getMonth() - 1);
+    filteredObservations = filteredObservations.filter(obs => 
+      new Date(obs.date) >= monthAgo
+    );
+  }
+  
+  filteredObservations.sort((a, b) => new Date(b.date) - new Date(a.date));
+  
+  if (filteredObservations.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <i class="fas fa-binoculars"></i>
+        <p>No observations found</p>
+      </div>
+    `;
+    return;
+  }
+  
+  filteredObservations.forEach(obs => {
+    const project = state.projects.find(p => p.id === obs.projectId);
+    const point = state.monitoringPoints.find(p => p.id === obs.pointId);
+    
+    const observationCard = document.createElement('div');
+    observationCard.className = 'observation-card';
+    observationCard.innerHTML = `
+      <div class="observation-header">
+        <div class="observation-point">${point ? point.name : 'Unknown Point'} - ${project ? project.name : 'Unknown Project'}</div>
+        <div class="observation-date">${new Date(obs.date).toLocaleDateString()}</div>
+      </div>
+      <p>${escapeHtml(obs.notes)}</p>
+      ${obs.weather ? `<p><strong>Weather:</strong> ${obs.weather}</p>` : ''}
+      ${obs.temp ? `<p><strong>Temperature:</strong> ${obs.temp}°C</p>` : ''}
+      ${obs.photos && obs.photos.length > 0 ? `
+        <div class="photo-preview" style="margin-top: 10px;">
+          ${obs.photos.map(photo => `
+            <img src="${photo.data || photo.url}" 
+                 class="photo-thumbnail" 
+                 style="width: 60px; height: 60px; cursor: pointer;"
+                 onclick="viewAllPhotos('${obs.id}', 'observation')">
+          `).join('')}
+        </div>
+      ` : ''}
+    `;
+    container.appendChild(observationCard);
+  });
+}
+
+function viewObservations(pointId) {
+  const point = state.monitoringPoints.find(p => p.id === pointId);
+  if (!point) return;
+  
+  showMonitoringTab('observations');
+  document.getElementById('observation-project').value = point.projectId;
+  
+  setTimeout(() => {
+    filterObservations();
+  }, 100);
+}
+
+// Team Functions
+function filterTeamMembers() {
+  const searchTerm = document.getElementById('team-search').value.toLowerCase();
+  const roleFilter = document.getElementById('team-role-filter').value;
+  
+  state.searchFilters.team = searchTerm;
+  renderTeamMembers(roleFilter);
+}
+
+function renderTeamMembers(roleFilter = '') {
+  const container = document.getElementById('team-members-list');
+  if (!container) return;
+  
+  const tbody = container.querySelector('tbody');
+  if (!tbody) return;
+  
+  tbody.innerHTML = '';
+  
+  let membersToShow = [...state.teamMembers];
+  
+  if (roleFilter) {
+    membersToShow = membersToShow.filter(m => m.role === roleFilter);
+  }
+  
+  if (state.searchFilters.team) {
+    membersToShow = membersToShow.filter(m => 
+      m.name.toLowerCase().includes(state.searchFilters.team) ||
+      m.email.toLowerCase().includes(state.searchFilters.team)
+    );
+  }
+  
+  if (membersToShow.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" style="text-align: center; padding: 40px;">
+          <i class="fas fa-users" style="font-size: 2rem; color: #ddd; margin-bottom: 10px;"></i>
+          <p>No team members found</p>
+          <button class="btn" onclick="showTeamMemberForm()" style="margin-top: 15px;">
+            <i class="fas fa-plus"></i> Add Team Member
+          </button>
+        </td>
+      </tr>
+    `;
+    return;
+  }
+  
+  membersToShow.forEach(member => {
+    const assignedProjects = member.projects.map(projectId => {
+      const project = state.projects.find(p => p.id === projectId);
+      return project ? project.name : 'Unknown Project';
+    }).join(', ');
+    
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${escapeHtml(member.name)}</td>
+      <td>${member.role.replace('-', ' ')}</td>
+      <td>${escapeHtml(member.email)}</td>
+      <td><span class="status-badge ${member.status}">${member.status}</span></td>
+      <td>${assignedProjects || 'None'}</td>
+      <td>
+        <div style="display: flex; gap: 5px;">
+          <button class="btn btn-outline" onclick="showTeamMemberForm('${member.id}')">
+            <i class="fas fa-edit"></i>
+          </button>
+          <button class="btn btn-outline btn-danger" onclick="deleteTeamMember('${member.id}')">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </td>
+    `;
+    tbody.appendChild(row);
+  });
+}
+
+function showTeamMemberForm(memberId = null) {
+  const formContainer = document.getElementById('team-member-form-container');
+  const formTitle = document.getElementById('team-member-form-title');
+  
+  if (memberId) {
+    const member = state.teamMembers.find(m => m.id === memberId);
+    if (!member) return;
+    
+    formTitle.textContent = 'Edit Team Member';
+    document.getElementById('team-member-id').value = member.id;
+    document.getElementById('team-member-name').value = member.name;
+    document.getElementById('team-member-role').value = member.role;
+    document.getElementById('team-member-email').value = member.email;
+    document.getElementById('team-member-phone').value = member.phone || '';
+    document.getElementById('team-member-status').value = member.status;
+    
+    const projectsSelect = document.getElementById('team-member-projects');
+    Array.from(projectsSelect.options).forEach(option => {
+      option.selected = member.projects.includes(option.value);
+    });
+  } else {
+    formTitle.textContent = 'Add Team Member';
+    document.getElementById('team-member-form').reset();
+  }
+  
+  populateProjectDropdown('team-member-projects', true);
+  formContainer.style.display = 'block';
+}
+
+function hideTeamMemberForm() {
+  document.getElementById('team-member-form-container').style.display = 'none';
+}
+
+function handleTeamMemberSubmit(e) {
+  e.preventDefault();
+  
+  const memberId = document.getElementById('team-member-id').value;
+  const name = document.getElementById('team-member-name').value.trim();
+  const role = document.getElementById('team-member-role').value;
+  const email = document.getElementById('team-member-email').value.trim();
+  const status = document.getElementById('team-member-status').value;
+  
+  if (!name || !role || !email || !status) {
+    showToast('Please fill in all required fields', 'error');
+    return;
+  }
+  
+  const projectsSelect = document.getElementById('team-member-projects');
+  const selectedProjects = Array.from(projectsSelect.selectedOptions).map(option => option.value);
+  
+  const member = {
+    id: memberId || 'member-' + Date.now(),
+    name: name,
+    role: role,
+    email: email,
+    phone: document.getElementById('team-member-phone').value.trim() || null,
+    status: status,
+    projects: selectedProjects
+  };
+  
+  if (memberId) {
+    const index = state.teamMembers.findIndex(m => m.id === memberId);
+    if (index !== -1) {
+      state.teamMembers[index] = member;
+    }
+  } else {
+    state.teamMembers.push(member);
+  }
+  
+  saveData();
+  renderTeamMembers();
+  hideTeamMemberForm();
+  showToast('Team member saved successfully', 'success');
+}
+
+function deleteTeamMember(memberId) {
+  if (!confirm('Are you sure you want to delete this team member?')) {
+    return;
+  }
+  
+  state.teamMembers = state.teamMembers.filter(m => m.id !== memberId);
+  saveData();
+  renderTeamMembers();
+  showToast('Team member deleted', 'success');
+}
+
+// Report Functions
+function handleReportSubmit(e) {
+  e.preventDefault();
+  
+  const projectId = document.getElementById('report-project').value;
+  const reportType = document.getElementById('report-type').value;
+  const format = document.getElementById('report-format').value;
+  const startDate = document.getElementById('report-start-date').value;
+  const endDate = document.getElementById('report-end-date').value;
+  
+  const submitBtn = document.getElementById('report-form-submit');
+  const submitSpinner = document.getElementById('report-submit-spinner');
+  submitSpinner.style.display = 'inline-block';
+  submitBtn.disabled = true;
+  
+  setTimeout(() => {
+    try {
+      if (format === 'pdf') {
+        generatePDFReport(projectId, reportType, startDate, endDate);
+      } else {
+        showToast(`Report generated successfully (${reportType} - ${format})`, 'success');
+      }
+    } catch (error) {
+      console.error('Error generating report:', error);
+      showToast('Error generating report: ' + error.message, 'error');
+    } finally {
+      submitSpinner.style.display = 'none';
+      submitBtn.disabled = false;
+    }
+  }, 2000);
+}
+
+function generatePDFReport(projectId, reportType, startDate, endDate) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  
+  doc.setFontSize(20);
+  doc.text('Ecological Restoration Project Report', 20, 20);
+  
+  doc.setFontSize(12);
+  doc.text(`Report Type: ${reportType}`, 20, 40);
+  doc.text(`Generated: ${new Date().toLocaleDateString()}`, 20, 50);
+  
+  if (projectId) {
+    const project = state.projects.find(p => p.id === projectId);
+    if (project) {
+      doc.text(`Project: ${project.name}`, 20, 60);
+    }
+  }
+  
+  if (startDate && endDate) {
+    doc.text(`Date Range: ${startDate} to ${endDate}`, 20, 70);
+  }
+  
+  let yPosition = 90;
+  
+  switch (reportType) {
+    case 'summary':
+      doc.text('Project Summary:', 20, yPosition);
+      yPosition += 10;
+      state.projects.forEach(project => {
+        if (!projectId || project.id === projectId) {
+          doc.text(`- ${project.name}: ${project.status}`, 20, yPosition);
+          yPosition += 7;
+          if (yPosition > 270) {
+            doc.addPage();
+            yPosition = 20;
+          }
+        }
+      });
+      break;
+      
+    case 'progress':
+      doc.text('Progress Report:', 20, yPosition);
+      yPosition += 10;
+      state.projects.forEach(project => {
+        if (!projectId || project.id === projectId) {
+          const completed = project.milestones ? 
+            project.milestones.filter(m => m.completed).length : 0;
+          const total = project.milestones ? project.milestones.length : 0;
+          const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
+          
+          doc.text(`- ${project.name}: ${progress}% complete`, 20, yPosition);
+          yPosition += 7;
+          if (yPosition > 270) {
+            doc.addPage();
+            yPosition = 20;
+          }
+        }
+      });
+      break;
+      
+    case 'monitoring':
+      doc.text('Monitoring Data:', 20, yPosition);
+      yPosition += 10;
+      state.monitoringPoints.forEach(point => {
+        const project = state.projects.find(p => p.id === point.projectId);
+        if (!projectId || point.projectId === projectId) {
+          doc.text(`- ${point.name} (${project ? project.name : 'Unknown'}): ${point.observations ? point.observations.length : 0} observations`, 20, yPosition);
+          yPosition += 7;
+          if (yPosition > 270) {
+            doc.addPage();
+            yPosition = 20;
+          }
+        }
+      });
+      break;
+      
+    case 'full':
+      doc.text('Full Project Report:', 20, yPosition);
+      yPosition += 10;
+      state.projects.forEach(project => {
+        if (!projectId || project.id === projectId) {
+          doc.text(`Project: ${project.name}`, 20, yPosition);
+          yPosition += 7;
+          doc.text(`Status: ${project.status}`, 20, yPosition);
+          yPosition += 7;
+          doc.text(`Type: ${project.type}`, 20, yPosition);
+          yPosition += 7;
+          doc.text(`Location: ${project.location.name}`, 20, yPosition);
+          yPosition += 10;
+          
+          if (yPosition > 270) {
+            doc.addPage();
+            yPosition = 20;
+          }
+        }
+      });
+      break;
+  }
+  
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  doc.save(`erpm-report-${timestamp}.pdf`);
+  
+  showToast('PDF report generated successfully', 'success');
+}
+
+// Utility Functions
+function showLoading(show) {
+  document.getElementById('loading-overlay').style.display = show ? 'flex' : 'none';
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function getStatusColor(status) {
+  const colors = {
+    active: '#2e7d32',
+    planned: '#ff8f00',
+    completed: '#0288d1',
+    'on-hold': '#d32f2f'
+  };
+  return colors[status] || '#2e7d32';
+}
+
+function getProjectIcon(type) {
+  const icons = {
+    riparian: 'water',
+    coastal: 'umbrella-beach',
+    wetland: 'frog',
+    forest: 'tree',
+    grassland: 'mountain',
+    urban: 'city',
+    mine: 'mountain',
+    agricultural: 'tractor'
+  };
+  return icons[type] || 'leaf';
+}
+
+function getMonitoringIcon(type) {
+  const icons = {
+    vegetation: 'leaf',
+    'water-quality': 'tint',
+    wildlife: 'paw',
+    soil: 'mountain',
+    erosion: 'water'
+  };
+  return icons[type] || 'binoculars';
+}
+
+function populateProjectDropdown(selectId, multiple = false) {
+  const select = document.getElementById(selectId);
+  if (!select) return;
+  
+  const currentValue = select.value;
+  select.innerHTML = '';
+  
+  if (!multiple && selectId !== 'observation-project' && selectId !== 'report-project' && selectId !== 'monitoring-project-filter') {
+    const defaultOption = document.createElement('option');
+    defaultOption.value = '';
+    defaultOption.textContent = 'Select a project';
+    defaultOption.disabled = true;
+    defaultOption.selected = true;
+    select.appendChild(defaultOption);
+  }
+  
+  state.projects.forEach(project => {
+    const option = document.createElement('option');
+    option.value = project.id;
+    option.textContent = project.name;
+    select.appendChild(option);
+  });
+  
+  if (currentValue && select.querySelector(`option[value="${currentValue}"]`)) {
+    select.value = currentValue;
+  }
+}
+
+function handlePhotoUpload(files, type) {
+  const previewContainer = document.getElementById(`${type}-photo-preview`);
+  if (!previewContainer) return;
+  
+  Array.from(files).forEach(file => {
+    if (!file.type.match('image.*')) {
+      showToast('Please select image files only', 'warning');
+      return;
+    }
+    
+    if (file.size > 2 * 1024 * 1024) {
+      showToast('File size too large. Please select files smaller than 2MB.', 'warning');
+      return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const imgContainer = document.createElement('div');
+      imgContainer.style.position = 'relative';
+      imgContainer.style.display = 'inline-block';
+      imgContainer.style.margin = '5px';
+      
+      const img = document.createElement('img');
+      img.src = e.target.result;
+      img.className = 'photo-thumbnail';
+      img.style.objectFit = 'cover';
+      
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'delete-photo';
+      deleteBtn.innerHTML = '<i class="fas fa-times"></i>';
+      deleteBtn.onclick = (ev) => {
+        ev.stopPropagation();
+        imgContainer.remove();
+        state.tempPhotos[type] = state.tempPhotos[type].filter(p => p.data !== e.target.result);
+      };
+      
+      imgContainer.appendChild(img);
+      imgContainer.appendChild(deleteBtn);
+      previewContainer.appendChild(imgContainer);
+      
+      // Store photo data
+      state.tempPhotos[type].push({
+        id: 'photo-' + Date.now() + Math.random(),
+        name: file.name,
+        data: e.target.result,
+        size: file.size,
+        type: file.type,
+        uploadedAt: new Date().toISOString()
+      });
+    };
+    
+    reader.onerror = function() {
+      showToast('Error reading file: ' + file.name, 'error');
+    };
+    
+    reader.readAsDataURL(file);
+  });
+}
+
+function initTooltips() {
+  document.querySelectorAll('[data-tooltip]').forEach(element => {
+    element.addEventListener('mouseenter', showTooltip);
+    element.addEventListener('mouseleave', hideTooltip);
+  });
+}
+
+function showTooltip(e) {
+  const tooltip = document.createElement('div');
+  tooltip.className = 'tooltip';
+  tooltip.textContent = this.getAttribute('data-tooltip');
+  document.body.appendChild(tooltip);
+  
+  const rect = this.getBoundingClientRect();
+  tooltip.style.left = `${rect.left + rect.width / 2 - tooltip.offsetWidth / 2}px`;
+  tooltip.style.top = `${rect.top - tooltip.offsetHeight - 5}px`;
+  
+  this.tooltipElement = tooltip;
+}
+
+function hideTooltip() {
+  if (this.tooltipElement) {
+    this.tooltipElement.remove();
+    this.tooltipElement = null;
+  }
+}
+
+function showToast(message, type = 'success') {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+  
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  
+  const icon = {
+    success: 'check-circle',
+    error: 'exclamation-circle',
+    warning: 'exclamation-triangle',
+    info: 'info-circle'
+  }[type] || 'info-circle';
+  
+  toast.innerHTML = `
+    <i class="fas fa-${icon}"></i>
+    <span>${escapeHtml(message)}</span>
+  `;
+  
+  container.appendChild(toast);
+  
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    setTimeout(() => {
+      if (toast.parentNode) {
+        toast.remove();
+      }
+    }, 300);
+  }, 5000);
+}
+
+function addActivity(projectId, type, description) {
+  const activity = {
+    id: 'activity-' + Date.now(),
+    projectId,
+    type,
+    date: new Date().toISOString(),
+    description
+  };
+  
+  state.activities.unshift(activity);
+  
+  if (state.activities.length > 100) {
+    state.activities = state.activities.slice(0, 100);
+  }
+  
+  saveData();
+  updateDashboard();
+}
+
+function updateDashboard() {
+  try {
+    const activeProjectsCount = state.projects.filter(p => p.status === 'active').length;
+    document.getElementById('active-projects-count').textContent = activeProjectsCount;
+    document.getElementById('total-projects-count').textContent = state.projects.length;
+    
+    document.getElementById('monitoring-points-count').textContent = state.monitoringPoints.length;
+    const totalObservations = state.monitoringPoints.reduce((sum, point) => sum + (point.observations ? point.observations.length : 0), 0);
+    document.getElementById('total-observations-count').textContent = totalObservations;
+    
+    let pendingActions = 0;
+    let overdueActions = 0;
+    const today = new Date();
+    
+    state.projects.forEach(project => {
+      if (project.milestones) {
+        project.milestones.forEach(milestone => {
+          if (!milestone.completed) {
+            pendingActions++;
+            if (new Date(milestone.date) < today) {
+              overdueActions++;
+            }
+          }
+        });
+      }
+    });
+    
+    document.getElementById('pending-actions-count').textContent = pendingActions;
+    document.getElementById('overdue-actions-count').textContent = overdueActions;
+    
+    document.getElementById('team-members-count').textContent = state.teamMembers.length;
+    document.getElementById('active-team-count').textContent = 
+      state.teamMembers.filter(m => m.status === 'active').length;
+    
+    const activitiesContainer = document.getElementById('recent-activities');
+    if (activitiesContainer) {
+      activitiesContainer.innerHTML = '';
+      
+      if (state.activities.length === 0) {
+        activitiesContainer.innerHTML = `
+          <div class="empty-state">
+            <i class="fas fa-inbox"></i>
+            <p>No recent activities</p>
+          </div>
+        `;
+        return;
+      }
+      
+      const ul = document.createElement('ul');
+      ul.style.listStyle = 'none';
+      
+      state.activities.slice(0, 5).forEach(activity => {
+        const project = activity.projectId ? state.projects.find(p => p.id === activity.projectId) : null;
+        const li = document.createElement('li');
+        li.style.padding = '10px 0';
+        li.style.borderBottom = '1px solid #eee';
+        li.innerHTML = `
+          <div style="display: flex; justify-content: space-between;">
+            <div>
+              <strong>${activity.type.replace('-', ' ')}</strong>
+              ${project ? ` for ${escapeHtml(project.name)}` : ''}
+            </div>
+            <small>${new Date(activity.date).toLocaleDateString()}</small>
+          </div>
+          <div>${escapeHtml(activity.description)}</div>
+        `;
+        ul.appendChild(li);
+      });
+      
+      if (state.activities.length > 5) {
+        const li = document.createElement('li');
+        li.style.padding = '10px 0';
+        li.style.textAlign = 'center';
+        li.innerHTML = `<a href="#" style="color: var(--primary);">View all activities</a>`;
+        ul.appendChild(li);
+      }
+      
+      activitiesContainer.appendChild(ul);
+    }
+  } catch (error) {
+    console.error('Error updating dashboard:', error);
+  }
+}
+
+// Photo viewing function
+function viewAllPhotos(id, type) {
+  let photos = [];
+  let title = '';
+  
+  if (type === 'project') {
+    const project = state.projects.find(p => p.id === id);
+    if (project) {
+      photos = project.photos;
+      title = `Photos for ${project.name}`;
+    }
+  } else if (type === 'monitoring') {
+    const point = state.monitoringPoints.find(p => p.id === id);
+    if (point) {
+      photos = point.photos;
+      title = `Photos for ${point.name}`;
+    }
+  } else if (type === 'observation') {
+    // Find observation across all monitoring points
+    for (const point of state.monitoringPoints) {
+      if (point.observations) {
+        const observation = point.observations.find(o => o.id === id);
+        if (observation) {
+          photos = observation.photos;
+          title = `Photos for observation on ${new Date(observation.date).toLocaleDateString()}`;
+          break;
+        }
+      }
+    }
+  }
+  
+  if (photos.length === 0) {
+    showToast('No photos available', 'info');
+    return;
+  }
+  
+  // Create modal for photo viewing
+  const modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.style.display = 'flex';
+  modal.innerHTML = `
+    <div class="modal-content" style="max-width: 90vw; max-height: 90vh;">
+      <div class="modal-header">
+        <h2>${title}</h2>
+        <button class="close-modal" onclick="this.closest('.modal').remove()">&times;</button>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; padding: 20px; overflow-y: auto;">
+        ${photos.map(photo => `
+          <img src="${photo.data || photo.url}" 
+               style="max-width: 300px; max-height: 300px; object-fit: contain; border-radius: 8px; cursor: pointer;"
+               onclick="this.style.transform = this.style.transform === 'scale(1.5)' ? 'scale(1)' : 'scale(1.5)'">
+        `).join('')}
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  
+  // Close modal when clicking outside
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.remove();
+    }
+  });
+}
+</script>
+</body>
+</html>
